@@ -16,7 +16,8 @@ export class App implements OnInit {
   private domSanitizer = inject(DomSanitizer);
   public fileListInput = new FormControl("", Validators.required);
 
-  url = signal<SafeResourceUrl>("");
+  url = signal<SafeResourceUrl | null>(this.domSanitizer.bypassSecurityTrustResourceUrl(""));
+  objUrl = signal("");
   contentType = signal("application/pdf");
 
   fileList = httpResource<FileDTO[]>(() => ({
@@ -27,22 +28,31 @@ export class App implements OnInit {
 
 
   ngOnInit(): void {
-    this.fileListInput.valueChanges.subscribe(this.fetchSelectedFile);
   }
 
-  fetchSelectedFile(fileName: string | null) {
-    if (fileName === null) return;
+  fetchSelectedFile({ target }: Event) {
+    const fileName = (<HTMLOptionElement>target).value;
+    console.log(fileName);
+    if (fileName === null || fileName === "") {
+      URL.revokeObjectURL(this.objUrl());
+      this.url.set(this.domSanitizer.bypassSecurityTrustResourceUrl(""));
+      this.contentType.set("")
+      return;
+    }
 
-    let file = null;
+    if (this.url() !== null) URL.revokeObjectURL(this.objUrl());
 
-    this.httpClient.get(`http://localhost:5177/files/${fileName}`, {
+
+    console.log(this.url(), this.objUrl());
+
+    this.httpClient.get(encodeURI(`http://localhost:5177/files/${fileName}`), {
       mode: 'cors',
-      responseType: "blob"
+      responseType: 'blob'
     }).subscribe({
       next: (value: Blob) => {
         this.contentType.set(this.getContentType(fileName));
-        const objUrl = URL.createObjectURL(new Blob([value], { type: this.contentType() }));
-        this.url.update(() => this.domSanitizer.bypassSecurityTrustResourceUrl(objUrl));
+        this.objUrl.set(URL.createObjectURL(new Blob([value], { type: this.contentType() })));
+        this.url.set(this.domSanitizer.bypassSecurityTrustResourceUrl(this.objUrl()));
       }
     });
   }

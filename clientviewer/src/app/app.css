@@ -1,0 +1,9 @@
+object,
+img {
+    margin-top: 10px;
+    display: block;
+    border: 5px;
+    border-color: red;
+    height: 100vh;
+    width: 100vw;
+}

@@ -1,11 +1,17 @@
 <label for="docList">Select a document </label>
-<select name="docList" id="docList" [formControl]="fileListInput">
+<select name="docList" id="docList" (change)="this.fetchSelectedFile($event)">
   <option value="">--Please choose an option--</option>
   @for (file of fileList.value(); track $index) {
   <option [value]="file.name">{{file.name}}</option>
   }
 </select>
 
-
+@switch (this.contentType()) {
+@case("image/png") {
+<img [src]="this.url()">
+}
+@default {
 <object [data]="this.url()" [type]="this.contentType()"
   style="border: 5px; border-color: red; display: block;"></object>
+}
+}

@@ -1,0 +1,9 @@
+@FileServer.Api_HostAddress = http://localhost:5177
+
+GET {{FileServer.Api_HostAddress}}/files/
+Accept: application/json;
+###
+
+GET {{FileServer.Api_HostAddress}}/files/certificado-dp900-azure-data-fundamentals.pdf
+Accept: application/json
+###

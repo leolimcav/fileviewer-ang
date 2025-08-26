@@ -1,0 +1,11 @@
+<label for="docList">Select a document </label>
+<select name="docList" id="docList" [formControl]="fileListInput">
+  <option value="">--Please choose an option--</option>
+  @for (file of fileList.value(); track $index) {
+  <option [value]="file.name">{{file.name}}</option>
+  }
+</select>
+
+
+<object [data]="this.url()" [type]="this.contentType()"
+  style="border: 5px; border-color: red; display: block;"></object>

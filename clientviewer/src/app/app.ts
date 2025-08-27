@@ -2,6 +2,7 @@ import { HttpClient, httpResource } from '@angular/common/http';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import * as officeParser from '../officeParserBundle@5.2.0.js';
 
 @Component({
   selector: 'app-root',
@@ -19,6 +20,7 @@ export class App implements OnInit {
   url = signal<SafeResourceUrl | null>(this.domSanitizer.bypassSecurityTrustResourceUrl(""));
   objUrl = signal("");
   contentType = signal("application/pdf");
+  officeText = signal("");
 
   fileList = httpResource<FileDTO[]>(() => ({
     url: "http://localhost:5177/files/",
@@ -49,8 +51,15 @@ export class App implements OnInit {
       mode: 'cors',
       responseType: 'blob'
     }).subscribe({
-      next: (value: Blob) => {
+      next: async (value: Blob) => {
         this.contentType.set(this.getContentType(fileName));
+
+        if (this.contentType().includes("officedocument")) {
+          const parsedDoc = await this.parseOfficeFile(value);
+          this.officeText.set(parsedDoc);
+          return;
+        }
+
         this.objUrl.set(URL.createObjectURL(new Blob([value], { type: this.contentType() })));
         this.url.set(this.domSanitizer.bypassSecurityTrustResourceUrl(this.objUrl()));
       }
@@ -87,6 +96,7 @@ export class App implements OnInit {
       case "csv":
         contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         break;
+      case "eml":
       case "htm":
       case "html":
         contentType = "text/html";
@@ -97,6 +107,16 @@ export class App implements OnInit {
     }
 
     return contentType;
+  }
+
+  private async parseOfficeFile(file: Blob) {
+    const parsedDoc = await officeParser.parseOfficeAsync(await file.arrayBuffer(), {
+      outputErrorToConsole: true,
+    });
+
+    console.log(parsedDoc);
+
+    return parsedDoc;
   }
 }
 

@@ -10,6 +10,12 @@
 @case("image/png") {
 <img [src]="this.url()">
 }
+@case("application/vnd.openxmlformats-officedocument.wordprocessingml.documentapplication/msword")
+{
+<span>
+  {{ this.officeText() }}
+</span>
+}
 @default {
 <object [data]="this.url()" [type]="this.contentType()"
   style="border: 5px; border-color: red; display: block;"></object>
